@@ -1,11 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import CryptoJS from 'crypto-js';
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
+import rateLimiterMiddleware from "@/helpers/rateLimiterMiddleware";
 const prisma = new PrismaClient();
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  if (!rateLimiterMiddleware()) {
+    return NextResponse.json({ message: 'Too Many Requests' });
+  }
   const res = await request.json();
   const requiredKeys = ["email","password"];
   let createUser = null;
