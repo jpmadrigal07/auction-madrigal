@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   const res = await request.json();
-  const requiredKeys = ["username","password"];
+  const requiredKeys = ["email","password"];
   let loginUser = null;
   if(verifyRequiredKeys(requiredKeys, res)) {
     try {

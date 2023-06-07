@@ -15,7 +15,7 @@ const tokenStatus = async (token: string) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as Decoded;
         const userCount = await prisma.user.count({ where: { id: decoded.id, email: decoded.email } });
-        result = userCount ? `Verified` : `Token is invalid or expired`
+        result = userCount ? { id: decoded.id, email: decoded.email } : `Token is invalid or expired`
     } catch (e) {
         result = getPrismaError(e);
     }

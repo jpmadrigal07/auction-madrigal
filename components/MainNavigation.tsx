@@ -9,7 +9,7 @@ import Link from 'next/link'
 const userNavigation = [
     { name: 'Create New Item', href: '/create' },
     { name: 'Deposit', href: '/deposit' },
-    { name: 'Logout', href: '#' },
+    { name: 'Logout', href: '/logout' },
 ];
 
 const user = {
@@ -70,7 +70,7 @@ const MainNavigation = () => {
                                                 {userNavigation.map((item) => (
                                                     <Menu.Item key={item.name}>
                                                         {({ active }) => (
-                                                            <a
+                                                            <Link
                                                                 href={item.href}
                                                                 className={combineClasses(
                                                                     active ? 'bg-gray-100' : '',
@@ -78,7 +78,7 @@ const MainNavigation = () => {
                                                                 )}
                                                             >
                                                                 {item.name}
-                                                            </a>
+                                                            </Link>
                                                         )}
                                                     </Menu.Item>
                                                 ))}

@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyToken from "@/helpers/verifyToken";
-import { VERIFIED } from "@/helpers/constants";
+import { SPAM_MESSAGE } from "@/helpers/constants";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
+import rateLimiterMiddleware from "@/helpers/rateLimiterMiddleware";
 const prisma = new PrismaClient();
 
 export async function GET() {
     let bid = null;
     const auth = await verifyToken();
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         try {
             bid = await prisma.bid.findMany({
                 where: {
@@ -27,10 +28,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    if (!rateLimiterMiddleware(1, 5)) {
+        return NextResponse.json("You can only bid every 5 seconds");
+    }
     const res = await request.json();
     const auth = await verifyToken();
     let createBid = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "itemId",
             "bidPrice",
@@ -38,7 +42,10 @@ export async function POST(request: Request) {
         if (verifyRequiredKeys(requiredKeys, res)) {
             try {
                 createBid = await prisma.bid.create({
-                    data: res
+                    data: {
+                        bidPrice: Number(res.bidPrice),
+                        itemId: Number(res.itemId)
+                    }
                 })
             } catch (e) {
                 createBid = getPrismaError(e);
@@ -56,7 +63,7 @@ export async function PATCH(request: Request) {
     const res = await request.json();
     const auth = await verifyToken();
     let updateBid = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "itemId",
             "bidPrice",
@@ -86,7 +93,7 @@ export async function DELETE(request: Request) {
     const res = await request.json();
     const auth = await verifyToken();
     let deleteBid = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "id",
         ];

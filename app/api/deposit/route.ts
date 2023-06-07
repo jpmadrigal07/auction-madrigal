@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyToken from "@/helpers/verifyToken";
-import { VERIFIED } from "@/helpers/constants";
+import { SPAM_MESSAGE } from "@/helpers/constants";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
+import rateLimiterMiddleware from "@/helpers/rateLimiterMiddleware";
 const prisma = new PrismaClient();
 
 export async function GET() {
     let deposit = null;
     const auth = await verifyToken();
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         try {
             deposit = await prisma.deposit.findMany({
                 where: {
@@ -27,18 +28,23 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    if (!rateLimiterMiddleware()) {
+        return NextResponse.json(SPAM_MESSAGE);
+    }
     const res = await request.json();
     const auth = await verifyToken();
     let createDeposit = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
-            "userId",
             "deposit",
         ];
         if (verifyRequiredKeys(requiredKeys, res)) {
             try {
                 createDeposit = await prisma.deposit.create({
-                    data: res
+                    data: {
+                        deposit: Number(res.deposit),
+                        userId: auth.id,
+                    }
                 })
             } catch (e) {
                 createDeposit = getPrismaError(e);
@@ -56,7 +62,7 @@ export async function PATCH(request: Request) {
     const res = await request.json();
     const auth = await verifyToken();
     let updateDeposit = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "userId",
             "deposit",
@@ -86,7 +92,7 @@ export async function DELETE(request: Request) {
     const res = await request.json();
     const auth = await verifyToken();
     let deleteDeposit = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "id",
         ];

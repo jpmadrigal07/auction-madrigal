@@ -1,6 +1,7 @@
-import MainNavigation from '@/components/MainNavigation'
-import './globals.css'
+import '@/styles/globals.css'
 import { Inter } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
+import QueryWrapper from '@/components/QueryWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,10 +19,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <div className="min-h-full">
-          <MainNavigation/>
-          {children}
+          <QueryWrapper>
+            <Toaster />
+            {children}
+          </QueryWrapper>
         </div>
       </body>
     </html>
   )
 }
+

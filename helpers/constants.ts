@@ -1,1 +1,1 @@
-export const VERIFIED = "Verified";
+export const SPAM_MESSAGE = "Too many requests, please try again later";

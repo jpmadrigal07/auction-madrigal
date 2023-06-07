@@ -2,22 +2,38 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyToken from "@/helpers/verifyToken";
-import { VERIFIED } from "@/helpers/constants";
+import { SPAM_MESSAGE } from "@/helpers/constants";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
+import rateLimiterMiddleware from "@/helpers/rateLimiterMiddleware";
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const itemId = searchParams.get('itemId');
     let item = null;
     const auth = await verifyToken();
-    if (auth === VERIFIED) {
-        try {
-            item = await prisma.item.findMany({
-                where: {
-                    deletedAt: undefined
-                }
-            })
-        } catch (e) {
-            item = getPrismaError(e);
+    if (typeof auth === 'object') {
+        if(itemId) {
+            try {
+                item = await prisma.item.findFirst({
+                    where: {
+                        id: Number(itemId),
+                        deletedAt: undefined
+                    }
+                })
+            } catch (e) {
+                item = getPrismaError(e);
+            }
+        } else {
+            try {
+                item = await prisma.item.findMany({
+                    where: {
+                        deletedAt: undefined
+                    }
+                })
+            } catch (e) {
+                item = getPrismaError(e);
+            }
         }
     } else {
         item = auth;
@@ -27,20 +43,29 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    if (!rateLimiterMiddleware()) {
+        return NextResponse.json(SPAM_MESSAGE);
+    }
     const res = await request.json();
     const auth = await verifyToken();
     let createItem = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
-            "userId",
             "name",
             "description",
             "origPrice",
+            "bidEndDate",
         ];
         if (verifyRequiredKeys(requiredKeys, res)) {
             try {
                 createItem = await prisma.item.create({
-                    data: res
+                    data: {
+                        name: res.name,
+                        description: res.description,
+                        origPrice: Number(res.origPrice),
+                        bidEndDate: new Date(res.bidEndDate),
+                        userId: auth.id,
+                    }
                 })
             } catch (e) {
                 createItem = getPrismaError(e);
@@ -58,7 +83,7 @@ export async function PATCH(request: Request) {
     const res = await request.json();
     const auth = await verifyToken();
     let updateItem = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "userId",
             "name",
@@ -90,7 +115,7 @@ export async function DELETE(request: Request) {
     const res = await request.json();
     const auth = await verifyToken();
     let deleteItem = null;
-    if (auth === VERIFIED) {
+    if (typeof auth === 'object') {
         const requiredKeys = [
             "id",
         ];
