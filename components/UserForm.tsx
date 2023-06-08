@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation'
 import useLogin from "@/hooks/useLogin";
 import useRegister from "@/hooks/useRegister";
-import { T_AUTH } from "@/types/user";
+import { T_AUTH } from "@/types/global";
 
 export default function UserForm({ headerTitle }: { headerTitle: 'Register' | 'Login' }) {
     const router = useRouter();

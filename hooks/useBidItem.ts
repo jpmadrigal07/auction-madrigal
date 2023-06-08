@@ -1,4 +1,4 @@
-import { T_BID_ITEM } from '@/types/user';
+import { T_BID_ITEM } from '@/types/global';
 import { useMutation } from '@tanstack/react-query';
 import Cookies from 'js-cookie';
 

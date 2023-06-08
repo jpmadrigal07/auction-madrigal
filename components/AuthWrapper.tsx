@@ -4,9 +4,10 @@ import useAuthVerify from "@/hooks/useAuthVerify";
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie'
 import { usePathname } from 'next/navigation';
-import useSession from "@/store/useSession";
-import { T_SESSION } from "@/types/user";
+import { T_SESSION } from "@/types/global";
 import LoadingSkeleton from "./LoadingSkeleton";
+import { SPAM_MESSAGE } from "@/helpers/constants";
+import toast from 'react-hot-toast';
 
 type Props = {
     children: React.ReactNode;
@@ -17,15 +18,16 @@ const AuthWrapper = ({ children }: Props) => {
     const router = useRouter();
     const { mutate, isLoading } = useAuthVerify();
     const [isLoaded, setIsLoaded] = useState(false);
-    const updateSession = useSession((state) => state.updateSession);
     useEffect(() => {
         const token = Cookies.get('p_token');
         const callbackReq = {
             onSuccess: (data: string | T_SESSION) => {
                 if (typeof data === 'object') {
-                    updateSession(data)
                     setIsLoaded(true);
+                } else if (data === SPAM_MESSAGE) {
+                    toast.error(data);
                 } else {
+                    toast.error(data);
                     router.push('/');
                 }
             },
@@ -38,7 +40,7 @@ const AuthWrapper = ({ children }: Props) => {
         } else {
             router.push('/');
         }
-    }, [mutate, router, updateSession])
+    }, [mutate, router])
     return (
         <>
             {pathname !== "/logout" ? !isLoading && isLoaded ? children : <LoadingSkeleton/> : children}

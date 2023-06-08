@@ -3,12 +3,13 @@ import combineClasses from '@/helpers/combineClasses'
 import Link from 'next/link'
 import React from 'react'
 import { usePathname } from 'next/navigation'
-const tabs = [
-    { name: 'Ongoing', href: '/home/ongoing', count: '2', existActive: ['/home', '/home/ongoing'] },
-    { name: 'Completed', href: '/home/completed', count: '4', existActive: ['/home/completed'] },
-]
-const Tabs = () => {
+import { T_ITEM_COUNT } from '@/types/global'
+const Tabs = ({ count = { ongoing: 0, completed: 0 } }: { count: T_ITEM_COUNT }) => {
     const pathname = usePathname();
+    const tabs = [
+        { name: 'Ongoing', href: '/home/ongoing', count: count.ongoing, existActive: ['/home', '/home/ongoing'] },
+        { name: 'Completed', href: '/home/completed', count: count.completed, existActive: ['/home/completed'] },
+    ]
     const activeTabName = tabs.find((tab) => tab.existActive.includes(pathname))?.name;
     return (
         <>

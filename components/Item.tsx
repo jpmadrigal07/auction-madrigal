@@ -4,12 +4,15 @@ import { useForm } from "react-hook-form";
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import useBidItem from "@/hooks/useBidItem";
-import { T_BID_ITEM } from "@/types/user";
+import { T_BID_ITEM } from "@/types/global";
 import useGetItem from "@/hooks/useGetItem";
 import LoadingSkeleton from "./LoadingSkeleton";
+import { useQueryClient } from '@tanstack/react-query'
+import toCurrency from "@/helpers/toCurrency";
 
 const Item = ({ itemId }: { itemId: number }) => {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { data, isLoading: isItemLoading } = useGetItem(itemId);
     const { register, handleSubmit, formState: { errors } } = useForm<T_BID_ITEM>();
     const { mutate, isLoading } = useBidItem();
@@ -18,6 +21,7 @@ const Item = ({ itemId }: { itemId: number }) => {
             onSuccess: (data: string | object) => {
                 if (typeof data === "object") {
                     toast.success("Success bid item");
+                    queryClient.invalidateQueries({ queryKey: ['balance'] });
                     router.push("/home");
                 } else {
                     toast.error(data);
@@ -41,7 +45,7 @@ const Item = ({ itemId }: { itemId: number }) => {
                 <div className="px-4 sm:px-0">
                     <h2 className="text-lg font-medium text-gray-900">Bid to <span className="font-bold text-purple-600">{data.name}</span></h2>
                 </div>
-                <h4 className="text-sm text-gray-400">Current price is <span className="font-semibold">${data.origPrice}</span></h4>
+                <h4 className="text-sm text-gray-400">Current price is <span className="font-semibold">{toCurrency.format(data.Bid && data.Bid.length > 0 ? data.Bid[0].bidPrice : data.origPrice)}</span></h4>
                 <form className="mt-4" onSubmit={handleSubmit(onSubmit)}>
                     <div className="mt-4">
                         <label htmlFor="price" className="block text-sm font-medium leading-6 text-gray-600">

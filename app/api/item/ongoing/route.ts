@@ -1,29 +1,32 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
-import verifyToken from "@/helpers/verifyToken";
-import { VERIFIED } from "@/helpers/constants";
 const prisma = new PrismaClient();
 
 export async function GET() {
     let item = null;
-    const auth = await verifyToken();
-    if (auth === VERIFIED) {
-        try {
-            item = await prisma.item.findMany({
-                where: {
-                    bidEndDate: {
-                        gt: new Date()
+    try {
+        item = await prisma.item.findMany({
+            where: {
+                bidEndDate: {
+                    gt: new Date()
+                },
+                deletedAt: null
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+            include: {
+                Bid: {
+                    orderBy: {
+                        createdAt: 'desc'
                     },
-                    deletedAt: undefined
+                    take: 1
                 }
-            })
-        } catch (e) {
-            item = getPrismaError(e);
-        }
-    } else {
-        item = auth;
+            }
+        })
+    } catch (e) {
+        item = getPrismaError(e);
     }
-
     return NextResponse.json(item)
 }

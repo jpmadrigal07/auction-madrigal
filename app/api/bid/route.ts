@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyToken from "@/helpers/verifyToken";
-import { SPAM_MESSAGE } from "@/helpers/constants";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
-import rateLimiterMiddleware from "@/helpers/rateLimiterMiddleware";
+import bidLimiter from "@/helpers/bidLimiter";
+import { BID_SPAM_MESSAGE } from "@/helpers/constants";
+import toCurrency from "@/helpers/toCurrency";
 const prisma = new PrismaClient();
 
 export async function GET() {
@@ -27,10 +28,7 @@ export async function GET() {
     return NextResponse.json(bid)
 }
 
-export async function POST(request: Request) {
-    if (!rateLimiterMiddleware(1, 5)) {
-        return NextResponse.json("You can only bid every 5 seconds");
-    }
+export async function POST(request: NextRequest) {
     const res = await request.json();
     const auth = await verifyToken();
     let createBid = null;
@@ -41,12 +39,72 @@ export async function POST(request: Request) {
         ];
         if (verifyRequiredKeys(requiredKeys, res)) {
             try {
-                createBid = await prisma.bid.create({
-                    data: {
-                        bidPrice: Number(res.bidPrice),
-                        itemId: Number(res.itemId)
+                const deposit = await prisma.deposit.aggregate({
+                    _sum: {
+                        deposit: true,
+                    },
+                    where: {
+                        userId: auth.id,
+                        deletedAt: null
                     }
                 })
+                const bid = await prisma.bid.aggregate({
+                    _sum: {
+                        bidPrice: true,
+                    },
+                    where: {
+                        status: {
+                            not: {
+                                equals: "LOST"
+                            }
+                        },
+                        userId: auth.id,
+                        deletedAt: null
+                    }
+                })
+                const totalDeposit = deposit._sum.deposit ? deposit._sum.deposit : 0;
+                const totalBid = bid._sum.bidPrice ? bid._sum.bidPrice : 0;
+                const total = totalDeposit - totalBid;
+                const currBalance = total <= 0 ? 0 : total;
+                const isBalanceSufficient = currBalance >= Number(res.bidPrice);
+                const item = await prisma.item.findFirst({
+                    where: {
+                        bidEndDate: {
+                            gt: new Date()
+                        },
+                        id: Number(res.itemId),
+                        deletedAt: null,
+                        
+                    },
+                    include: {
+                        Bid: {
+                            orderBy: {
+                                createdAt: 'desc'
+                            },
+                            take: 1
+                        }
+                    }
+                })
+                const isItemOngoing = !!item;
+                const itemCurrBidPrice = item && item.Bid.length > 0 ? Number(item.Bid[0].bidPrice) : Number(item?.origPrice);
+                if(!isBalanceSufficient) {
+                    createBid = "Insufficient balance";
+                } else if(!isItemOngoing) {
+                    createBid = "Bid time window ended";
+                } else if(itemCurrBidPrice >= Number(res.bidPrice)) {
+                    createBid = `Bid price must be greater than ${toCurrency.format(itemCurrBidPrice)}`;
+                } else {
+                    if (!bidLimiter(auth.id, res.itemId)) {
+                        return NextResponse.json(BID_SPAM_MESSAGE);
+                    }
+                    createBid = await prisma.bid.create({
+                        data: {
+                            bidPrice: Number(res.bidPrice),
+                            itemId: Number(res.itemId),
+                            userId: Number(auth.id),
+                        }
+                    })
+                }
             } catch (e) {
                 createBid = getPrismaError(e);
             }

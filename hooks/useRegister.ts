@@ -1,4 +1,4 @@
-import { T_AUTH } from '@/types/user';
+import { T_AUTH } from '@/types/global';
 import { useMutation } from '@tanstack/react-query';
 
 async function register(

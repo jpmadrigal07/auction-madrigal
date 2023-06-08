@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import toast from 'react-hot-toast';
 import useAddDeposit from "@/hooks/useAddDeposit";
-import { T_DEPOSIT } from "@/types/user";
+import { T_DEPOSIT } from "@/types/global";
 import { useRouter } from 'next/navigation';
 
 const Deposit = () => {

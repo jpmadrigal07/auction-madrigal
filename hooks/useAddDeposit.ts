@@ -1,4 +1,4 @@
-import { T_DEPOSIT } from '@/types/user';
+import { T_DEPOSIT } from '@/types/global';
 import { useMutation } from '@tanstack/react-query';
 import Cookies from 'js-cookie';
 

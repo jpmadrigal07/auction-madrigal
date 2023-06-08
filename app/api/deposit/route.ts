@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyToken from "@/helpers/verifyToken";
-import { SPAM_MESSAGE } from "@/helpers/constants";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
-import rateLimiterMiddleware from "@/helpers/rateLimiterMiddleware";
 const prisma = new PrismaClient();
 
 export async function GET() {
@@ -28,9 +26,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-    if (!rateLimiterMiddleware()) {
-        return NextResponse.json(SPAM_MESSAGE);
-    }
     const res = await request.json();
     const auth = await verifyToken();
     let createDeposit = null;

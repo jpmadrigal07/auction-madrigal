@@ -5,6 +5,8 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import combineClasses from '@/helpers/combineClasses'
 import Image from 'next/image';
 import Link from 'next/link'
+import useGetBalance from '@/hooks/useGetBalance'
+import toCurrency from '@/helpers/toCurrency'
 
 const userNavigation = [
     { name: 'Create New Item', href: '/create' },
@@ -20,6 +22,8 @@ const user = {
 };
 
 const MainNavigation = () => {
+    const { data, isLoading } = useGetBalance();
+    
     return (
         <Disclosure as="nav">
             {({ open }) => (
@@ -48,6 +52,16 @@ const MainNavigation = () => {
                             {/* Actions section */}
                             <div className="hidden lg:ml-4 lg:block">
                                 <div className="flex items-center">
+                                    {!isLoading ? (
+                                        <h4 className="text-sm text-green-500 font-semibold">{toCurrency.format(data)}</h4>
+                                    ) : (
+                                        <>
+                                            <div className="px-4 py-12 sm:px-6 lg:flex-auto lg:px-0 animate-pulse">
+                                                <div className="w-16 h-6 bg-gray-200 rounded-lg"></div>
+                                            </div>
+                                        </>
+                                    )}
+
 
                                     {/* Profile dropdown */}
                                     <Menu as="div" className="relative ml-3 flex-shrink-0">

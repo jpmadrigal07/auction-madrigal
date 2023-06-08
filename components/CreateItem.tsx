@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import toast from 'react-hot-toast';
-import { T_ITEM } from "@/types/user";
+import { T_ITEM } from "@/types/global";
 import { useRouter } from 'next/navigation';
 import useAddItem from "@/hooks/useAddItem";
 import moment from "moment";
@@ -31,14 +31,18 @@ const CreateItem = () => {
                 toast.error(err);
             },
         }
-        const date = moment().add(data.windowHours, 'hours').add(data.windowMinutes, 'minutes').add(data.windowSeconds, 'seconds').format();
-        const finalData = {
-            name: data.name,
-            origPrice: data.origPrice,
-            description: data.description,
-            bidEndDate: date,
+        if(Number(data.windowHours) === 0 && Number(data.windowMinutes) === 0 && Number(data.windowSeconds) < 30) {
+            toast.error("Time window needs to be greater than 30 seconds");
+        } else {
+            const date = moment().add(data.windowHours, 'hours').add(data.windowMinutes, 'minutes').add(data.windowSeconds, 'seconds').format();
+            const finalData = {
+                name: data.name,
+                origPrice: data.origPrice,
+                description: data.description,
+                bidEndDate: date,
+            }
+            mutate(finalData, callbackReq)
         }
-        mutate(finalData, callbackReq)
     };
     if (Object.keys(errors).length > 0) {
         toast.error('Please complete all fields');
@@ -104,7 +108,7 @@ const CreateItem = () => {
                     </div>
                     <div className="mt-2">
                         <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-600">
-                            Time Window
+                            Time Window (Add 0 if not applicable)
                         </label>
                         <div className="grid grid-cols-3 gap-4">
                             <div>
