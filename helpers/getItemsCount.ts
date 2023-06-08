@@ -1,7 +1,7 @@
 import { CACHE_REVALIDATE } from "@/helpers/constants";
 
 async function getItemsCount() {
-    const res = await fetch(`http://localhost:3000/api/item/count`, {
+    const res = await fetch(`${process.env.WEB_URL}/api/item/count`, {
         next: { revalidate: CACHE_REVALIDATE },
     });
     if (!res.ok) {

@@ -3,10 +3,20 @@ import { PrismaClient } from "@prisma/client";
 import getPrismaError from "@/helpers/getPrismaError";
 import verifyToken from "@/helpers/verifyToken";
 import verifyRequiredKeys from "@/helpers/verifyRequiredKeys";
-import bidLimiter from "@/helpers/bidLimiter";
 import { BID_SPAM_MESSAGE } from "@/helpers/constants";
 import toCurrency from "@/helpers/toCurrency";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 const prisma = new PrismaClient();
+
+const redis = new Redis({
+    url: "https://glad-snake-37417.upstash.io",
+    token: "AZIpACQgZDcwZjEyMmMtYzJmMi00NDA4LWExZTYtM2M1MDZiYjk0NmNkY2U0Nzk5ODJjZjNiNDllZDljZTE1MGNhYWExZDg5MmE=",
+});
+const rateLimit = new Ratelimit({
+    redis: redis,
+    limiter: Ratelimit.slidingWindow(1, "5 s"),
+});
 
 export async function GET() {
     let bid = null;
@@ -94,7 +104,10 @@ export async function POST(request: NextRequest) {
                 } else if(itemCurrBidPrice >= Number(res.bidPrice)) {
                     createBid = `Bid price must be greater than ${toCurrency.format(itemCurrBidPrice)}`;
                 } else {
-                    if (!bidLimiter(auth.id, res.itemId)) {
+                    const { success } = await rateLimit.limit(
+                        `${auth.id}-${res.itemId}`
+                    );
+                    if (!success) {
                         return NextResponse.json(BID_SPAM_MESSAGE);
                     }
                     createBid = await prisma.bid.create({
