@@ -16,6 +16,11 @@ enum BidStatus {
     LOST
 }
 
+enum ItemStatus {
+    FOR_BID
+    COMPLETED
+}
+
 model User {
     id        Int       @id @default(autoincrement())
     email     String    @unique @db.VarChar(255)
@@ -29,16 +34,17 @@ model User {
 }
 
 model Item {
-    id          Int       @id @default(autoincrement())
-    user        User      @relation(fields: [userId], references: [id])
+    id          Int        @id @default(autoincrement())
+    user        User       @relation(fields: [userId], references: [id])
     userId      Int
-    name        String    @db.VarChar(255)
-    description String    @db.VarChar(255)
+    name        String     @db.VarChar(255)
+    description String     @db.VarChar(255)
     origPrice   Int
     bidEndDate  DateTime
-    createdAt   DateTime  @default(now())
+    createdAt   DateTime   @default(now())
     deletedAt   DateTime?
-    updatedAt   DateTime  @updatedAt
+    updatedAt   DateTime   @updatedAt
+    status      ItemStatus @default(FOR_BID)
     Bid         Bid[]
 }
 
@@ -61,6 +67,6 @@ model Bid {
     createdAt DateTime  @default(now())
     deletedAt DateTime?
     updatedAt DateTime  @updatedAt
-    user      User     @relation(fields: [userId], references: [id])
+    user      User      @relation(fields: [userId], references: [id])
     userId    Int
 }
