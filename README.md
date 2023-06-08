@@ -8,7 +8,7 @@ Clone this repository to your local machine using this command
 git clone https://github.com/jpmadrigal07/auction-madrigal.git
 ```
 
-If you don't have access the repository, please contact the owner on this email `jp.madrigal07@gmail.com`
+If you don't have access to this repository, please contact the owner on this email `jp.madrigal07@gmail.com`
 
 ### Step 2:
 
@@ -20,7 +20,7 @@ MAC: [How to Install PostgreSql in Mac M1/M2](https://www.youtube.com/watch?v=fw
 
 UBUNTU: [How to Install and Set Up PostgreSQL Database on Ubuntu 22.04](https://www.youtube.com/watch?v=Dvhz2mHgNdg)
 
-After the successful installation, create a database name `auction-madrigal`.
+After the successful installation, create a new database with the name `auction-madrigal`.
 
 ### Step 3:
 
