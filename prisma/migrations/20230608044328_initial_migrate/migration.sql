@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "BidStatus" AS ENUM ('BID', 'WON', 'LOST');
+
+-- CreateEnum
+CREATE TYPE "ItemStatus" AS ENUM ('FOR_BID', 'COMPLETED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -5,6 +11,7 @@ CREATE TABLE "User" (
     "password" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -16,12 +23,11 @@ CREATE TABLE "Item" (
     "name" VARCHAR(255) NOT NULL,
     "description" VARCHAR(255) NOT NULL,
     "origPrice" INTEGER NOT NULL,
-    "timeWindowHour" INTEGER NOT NULL,
-    "timeWindowMin" INTEGER NOT NULL,
-    "timeWindowSec" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "bidEndDate" TIMESTAMP(3) NOT NULL,
+    "status" "ItemStatus" NOT NULL DEFAULT 'FOR_BID',
 
     CONSTRAINT "Item_pkey" PRIMARY KEY ("id")
 );
@@ -32,7 +38,7 @@ CREATE TABLE "Deposit" (
     "userId" INTEGER NOT NULL,
     "deposit" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Deposit_pkey" PRIMARY KEY ("id")
@@ -44,8 +50,10 @@ CREATE TABLE "Bid" (
     "itemId" INTEGER NOT NULL,
     "bidPrice" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "deletedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "status" "BidStatus" NOT NULL DEFAULT 'BID',
 
     CONSTRAINT "Bid_pkey" PRIMARY KEY ("id")
 );
@@ -60,4 +68,7 @@ ALTER TABLE "Item" ADD CONSTRAINT "Item_userId_fkey" FOREIGN KEY ("userId") REFE
 ALTER TABLE "Deposit" ADD CONSTRAINT "Deposit_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Bid" ADD CONSTRAINT "Bid_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Bid" ADD CONSTRAINT "Bid_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "Item"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Bid" ADD CONSTRAINT "Bid_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
