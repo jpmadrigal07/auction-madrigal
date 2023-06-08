@@ -1,5 +1,6 @@
 import { CACHE_REVALIDATE } from "@/helpers/constants";
 
+// SERVER COMPONENTS REQUEST
 async function getItems(type: 'ongoing' | 'completed') {
     const res = await fetch(`${process.env.WEB_URL}/api/item/${type}`, {
         next: { revalidate: CACHE_REVALIDATE },

@@ -5,15 +5,22 @@ import {
   ClockIcon,
 } from '@heroicons/react/20/solid'
 import Tabs from './Tabs'
-import { T_FULL_ITEM, T_ITEM_COUNT } from '@/types/global'
+import { T_FULL_ITEM } from '@/types/global'
 import moment from 'moment'
 import toast from 'react-hot-toast';
 import TableSkeleton from './TableSkeleton'
 import toCurrency from '@/helpers/toCurrency'
 import Link from 'next/link'
+import useGetItems from '@/hooks/useGetItems'
+import useGetItemsCount from '@/hooks/useGetItemsCount'
 
-export default function Ongoing({ items, count }: { items: T_FULL_ITEM[], count: T_ITEM_COUNT }) {
-  if(typeof items === 'string') {
+export default function Completed() {
+  const { data: items, isLoading: isItemsLoading } = useGetItems('completed');
+  const { data: itemsCount, isLoading: isItemsCountLoading } = useGetItemsCount();
+  if (typeof items === 'string') {
+    toast.error(items);
+  }
+  if (typeof itemsCount === 'string') {
     toast.error(items);
   }
   return (
@@ -27,57 +34,62 @@ export default function Ongoing({ items, count }: { items: T_FULL_ITEM[], count:
               Refresh
             </Link>
           </div>
-          <Tabs count={count} />
+          {!isItemsCountLoading ? <Tabs count={itemsCount} /> : (
+            <div className="pt-8 flex flex-col lg:flex-row gap-2 animate-pulse">
+              <div className="w-24 h-6 bg-gray-200 rounded-lg"></div>
+              <div className="w-24 h-6 bg-gray-200 rounded-lg"></div>
+            </div>
+          )}
         </div>
 
         {/* Stacked list */}
         <ul role="list" className="mt-5 divide-y divide-gray-200 border-t border-gray-200 sm:mt-0 sm:border-t-0">
-        {typeof items === 'object' ? items.map((item) => {
+          {typeof items === 'object' && !isItemsLoading ? items.map((item: T_FULL_ITEM) => {
             const end = moment(new Date(item.bidEndDate)).fromNow();
             return (
-            <li key={item.id}>
-              <div className="group block">
-                <div className="flex items-center px-4 py-5 sm:px-0 sm:py-6">
-                  <div className="flex min-w-0 flex-1 items-center">
-                    <div className="min-w-0 flex-1 pl-1 md:grid md:grid-cols-3 md:gap-4">
-                      <div>
-                        <p className="truncate text-sm font-medium text-purple-600">{item.name}</p>
-                        <p className="mt-2 flex items-center text-sm text-gray-500">
-                          <span className="truncate">{item.description}</span>
-                        </p>
-                      </div>
-                      <div>
+              <li key={item.id}>
+                <div className="group block">
+                  <div className="flex items-center px-4 py-5 sm:px-0 sm:py-6">
+                    <div className="flex min-w-0 flex-1 items-center">
+                      <div className="min-w-0 flex-1 pl-1 md:grid md:grid-cols-3 md:gap-4">
                         <div>
-                          <p className="text-sm flex items-center text-gray-900">
-                            <BanknotesIcon
-                              className="mr-1.5 h-5 w-5 flex-shrink-0 text-purple-400"
-                              aria-hidden="true"
-                            />
-                            Final bid price is {toCurrency.format(item.Bid.length > 0 ? item.Bid[0].bidPrice : item.origPrice)}
-                          </p>
+                          <p className="truncate text-sm font-medium text-purple-600">{item.name}</p>
                           <p className="mt-2 flex items-center text-sm text-gray-500">
-                            <ClockIcon
-                              className="mr-1.5 h-5 w-5 flex-shrink-0 text-purple-400"
-                              aria-hidden="true"
-                            />
-                            Ended {end}
+                            <span className="truncate">{item.description}</span>
                           </p>
                         </div>
-                      </div>
-                      <div>
-                        <p className="truncate text-sm font-medium text-purple-600"></p>
-                        <p className="truncate text-sm font-medium text-purple-600">Bidding Winner</p>
-                        <p className="mt-2 flex items-center text-sm text-gray-500">
-                          <span className="truncate">{item.Bid.length > 0 ? item.Bid[0].user.email : ""}</span>
-                        </p>
+                        <div>
+                          <div>
+                            <p className="text-sm flex items-center text-gray-900">
+                              <BanknotesIcon
+                                className="mr-1.5 h-5 w-5 flex-shrink-0 text-purple-400"
+                                aria-hidden="true"
+                              />
+                              Final bid price is {toCurrency.format(item.Bid.length > 0 ? item.Bid[0].bidPrice : item.origPrice)}
+                            </p>
+                            <p className="mt-2 flex items-center text-sm text-gray-500">
+                              <ClockIcon
+                                className="mr-1.5 h-5 w-5 flex-shrink-0 text-purple-400"
+                                aria-hidden="true"
+                              />
+                              Ended {end}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="truncate text-sm font-medium text-purple-600"></p>
+                          <p className="truncate text-sm font-medium text-purple-600">Bidding Winner</p>
+                          <p className="mt-2 flex items-center text-sm text-gray-500">
+                            <span className="truncate">{item.Bid.length > 0 ? item.Bid[0].user.email : ""}</span>
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </li>
-          )
-          }) : <TableSkeleton/>} 
+              </li>
+            )
+          }) : <TableSkeleton />}
         </ul>
       </div>
     </main>

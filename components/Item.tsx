@@ -22,6 +22,7 @@ const Item = ({ itemId }: { itemId: number }) => {
                 if (typeof data === "object") {
                     toast.success("Success bid item");
                     queryClient.invalidateQueries({ queryKey: ['balance'] });
+                    queryClient.invalidateQueries({ queryKey: ['items', 'ongoing'] });
                     router.push("/home");
                 } else {
                     toast.error(data);
