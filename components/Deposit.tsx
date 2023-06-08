@@ -5,15 +5,18 @@ import toast from 'react-hot-toast';
 import useAddDeposit from "@/hooks/useAddDeposit";
 import { T_DEPOSIT } from "@/types/global";
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query'
 
 const Deposit = () => {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { register, handleSubmit, formState: { errors } } = useForm<T_DEPOSIT>();
     const { mutate, isLoading } = useAddDeposit();
     const onSubmit = (data: T_DEPOSIT) => {
         const callbackReq = {
             onSuccess: (data: string | object) => {
                 if (typeof data === "object") {
+                    queryClient.invalidateQueries({ queryKey: ['balance'] });
                     toast.success("Success adding money");
                     router.push("/home");
                 } else {

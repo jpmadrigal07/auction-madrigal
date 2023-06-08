@@ -19,7 +19,7 @@ export async function GET() {
             include: {
                 Bid: {
                     orderBy: {
-                        createdAt: 'desc'
+                        bidPrice: 'desc'
                     },
                     take: 1,
                     include: {
