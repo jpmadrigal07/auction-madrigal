@@ -6,6 +6,7 @@ import { T_ITEM } from "@/types/global";
 import { useRouter } from 'next/navigation';
 import useAddItem from "@/hooks/useAddItem";
 import moment from "moment";
+import { useQueryClient } from '@tanstack/react-query';
 
 type T_Form = T_ITEM & {
     windowHours: number;
@@ -15,6 +16,7 @@ type T_Form = T_ITEM & {
 
 const CreateItem = () => {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { register, handleSubmit, formState: { errors } } = useForm<T_Form>();
     const { mutate, isLoading } = useAddItem();
     const onSubmit = (data: T_Form) => {
@@ -22,6 +24,7 @@ const CreateItem = () => {
             onSuccess: (data: string | object) => {
                 if (typeof data === "object") {
                     toast.success("Success adding item");
+                    queryClient.invalidateQueries({ queryKey: ['items', 'ongoing'] });
                     router.push("/home");
                 } else {
                     toast.error(data);
