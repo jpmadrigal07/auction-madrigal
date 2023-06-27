@@ -3,10 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("POSTGRES_PRISMA_URL")
-  directUrl         = env("POSTGRES_URL_NON_POOLING")
-  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING")
+  provider          = "mysql"
+  url               = env("PS_DATABASE_URL")
+  shadowDatabaseUrl = env("PS_SHADOW_DATABASE_URL")
+  relationMode      = "prisma"
 }
 
 model User {
@@ -34,6 +34,8 @@ model Item {
   status      ItemStatus @default(FOR_BID)
   Bid         Bid[]
   user        User       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Deposit {
@@ -44,6 +46,8 @@ model Deposit {
   deletedAt DateTime?
   updatedAt DateTime  @updatedAt
   user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Bid {
@@ -57,6 +61,9 @@ model Bid {
   status    BidStatus @default(BID)
   item      Item      @relation(fields: [itemId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
+
+  @@index([itemId])
+  @@index([userId])
 }
 
 enum BidStatus {

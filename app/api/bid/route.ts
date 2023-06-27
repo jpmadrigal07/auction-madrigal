@@ -10,12 +10,12 @@ import { Redis } from "@upstash/redis";
 const prisma = new PrismaClient();
 
 const redis = new Redis({
-    url: "https://glad-snake-37417.upstash.io",
-    token: "AZIpACQgZDcwZjEyMmMtYzJmMi00NDA4LWExZTYtM2M1MDZiYjk0NmNkY2U0Nzk5ODJjZjNiNDllZDljZTE1MGNhYWExZDg5MmE=",
+    url: 'https://apn1-loyal-burro-33592.upstash.io',
+    token: "AYM4ASQgZjFlYjAyMTMtOWRmNC00ZTdlLWI0MTctZDFlMDg3OTE3YzA2Mjg3MGU3YzYxOGE3NDQwN2E4NDg3ZTMwMDU3MmEyMTk=",
 });
 const rateLimit = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(1, "5 s"),
+    limiter: Ratelimit.slidingWindow(1, "30 s"),
 });
 
 export async function GET() {
